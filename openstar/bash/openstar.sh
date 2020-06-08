@@ -237,6 +237,7 @@ function openresty_install(){
     ./configure --prefix=${install_path} \
                 --add-module=${build_path}/ngx_http_geoip2_module \
                 --add-module=${build_path}/ngx_cache_purge-${purge_version} \
+                --with-ld-opt='-ljemalloc' \
                 --without-luajit-gc64 \
                 --with-http_realip_module \
                 --with-http_v2_module || (echo "configure openresty Error!!" && exit 1)

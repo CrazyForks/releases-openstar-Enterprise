@@ -18,25 +18,22 @@ var navleft = `<nav class="navbar-default navbar-static-side" role="navigation">
                     </div>
                 </li>
                 <li>
-                    <a href="/attackLog.html" target=''>
-                        <i  style="font-size: 16px" class="iconfont icon-gongjirizhi"></i>
-                        <span class="nav-label">攻击日志</span>
-                        <span class="label label-info pull-right"></span>
-                    </a>
-                </li>
-                <li>
-                    <a href="/index.html" target=''>
-                        <i  style="font-size: 16px" class="iconfont icon-anquan"></i>
-                        <span class="nav-label">安全报表</span>
-                        <span class="label label-info pull-right"></span>
-                    </a>
-                </li>
-                <li>
-                    <a href="/businessReport.html" target=''>
-                        <i style="font-size: 16px" class="iconfont icon-baobiao"></i>
-                        <span class="nav-label">业务报表</span>
-                        <span class="label label-info pull-right"></span>
-                    </a>
+					<a href="#" target=''>
+					<i style="font-size: 16px" class="iconfont icon-peizhi"></i>
+					    <span class="nav-label">dashboard</span>
+					    <span class="fa arrow" style="margin-top: 5px;"></span>
+					</a>
+					<ul id="report" class="nav nav-second-level collapse" aria-expanded="false" style="height: 0px;">
+					    <li class="">
+					        <a href="/report/index.html">安全报表</a>
+					    </li>
+					    <li class="">
+					        <a href="/report/businessReport.html">业务报表</a>
+					    </li>
+					    <li class="">
+					        <a href="/report/attackLog.html">攻击日志</a>
+					    </li>
+					</ul>
                 </li>
                 <li>
                     <a href="#" target=''>
@@ -132,7 +129,15 @@ var navleft = `<nav class="navbar-default navbar-static-side" role="navigation">
                         <li class="">
                             <a href="/global/dengMsg.html">拦截信息配置</a>
                         </li>
+						
                     </ul>
+                </li>
+                 <li>
+                    <a href="/global/auth.html" target=''>
+                    <i style="font-size: 16px" class="iconfont icon-wangzhan"></i>
+                        <span class="nav-label">授权认证配置</span>
+                        <span class="label label-info pull-right"></span>
+                    </a>
                 </li>
             </ul>
         </div>

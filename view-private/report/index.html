@@ -1,0 +1,825 @@
+<!DOCTYPE html>
+<!-- private -->
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title></title>
+    <link rel="stylesheet" type="text/css" href="../css/bootstrap.min.css" />
+    <link rel="stylesheet" type="text/css" href="../css/style.css" />
+    <link rel="stylesheet" type="text/css" href="../css/font-awesome.css" />
+    <link rel="stylesheet" type="text/css" href="../css/iconfont/iconfont.css">
+    <link rel="stylesheet" type="text/css" href="../css/element-ui.css" />
+    <link rel="stylesheet" type="text/css" href="../css/AdminLTE.min.css" />
+    <link rel="stylesheet" href="../css/ionicons.min.css">
+<style>
+    .chart-container {
+        width: 100%;
+    }
+    .info-box-number {
+        line-height: 20px;
+    }
+</style>
+</head>
+
+<body>
+    <div id="wrapper">
+        <div id="page-wrapper" class="gray-bg">
+            <div class="row wrapper border-bottom white-bg page-heading">
+                <div class="col-lg-10">
+                    <h2>安全报表</h2>
+                </div>
+            </div>
+
+            <div class="wrapper wrapper-content">
+                <div class="row">
+                    <div class="col-md-3 col-sm-6 col-xs-12">
+                        <div class="info-box">
+                            <span class="info-box-icon bg-aqua"><i class="ion ion-ios-gear-outline"></i></span>
+
+                            <div class="info-box-content">
+                                <span class="info-box-text">请求总数</span>
+                                <span class="info-box-number">{{ requests_count }}</span>
+                            </div>
+                        <!-- /.info-box-content -->
+                        </div>
+                    <!-- /.info-box -->
+                    </div>
+
+                    <div class="col-md-3 col-sm-6 col-xs-12">
+                    <div class="info-box">
+                        <span class="info-box-icon bg-red"><i class="fa fa-google-plus"></i></span>
+
+                        <div class="info-box-content">
+                            <span class="info-box-text">拦截总数</span>
+                            <span class="info-box-number">{{ interceptors_deny_count }}</span>
+                            <span class="info-box-text">LOG总数</span>
+                            <span class="info-box-number">{{ interceptors_log_count }}</span>
+                        </div>
+                    <!-- /.info-box-content -->
+                    </div>
+                    <!-- /.info-box -->
+                    </div>
+
+                    <div class="col-md-3 col-sm-6 col-xs-12">
+                        <div class="info-box">
+                            <span class="info-box-icon bg-green"><i class="ion ion-ios-cart-outline"></i></span>
+
+                            <div class="info-box-content">
+                                <span class="info-box-text">自定义规则拦截</span>
+                                <span class="info-box-number">{{ customRule_count }}</span>
+                            </div>
+                        <!-- /.info-box-content -->
+                        </div>
+                        <!-- /.info-box -->
+                    </div>
+
+                    <div class="col-md-3 col-sm-6 col-xs-12">
+                        <div class="info-box">
+                            <span class="info-box-icon bg-yellow"><i class="ion ion-ios-people-outline"></i></span>
+
+                            <div class="info-box-content">
+                                <span class="info-box-text">CC防护</span>
+                                <span class="info-box-number">{{ customRule_count2 }}<small>次</small></span>
+                            </div>
+                        <!-- /.info-box-content -->
+                        </div>
+                        <!-- /.info-box -->
+                    </div>
+                </div>
+
+                <!-- 饼图 -->
+                <div class="row">
+                    <div class="box box-info">
+                        <div id="draw1" style="width:100%;height:480px;"></div>
+                    </div>
+                </div>
+                <!-- 饼图 -->
+                <div class="row">
+                    <div class="box box-info">
+                        <div id="draw4" style="width:100%; height:480px;"></div>
+                    </div>
+                </div>
+
+                <!-- 表单数据 -->
+                <div class="row">
+                    <!-- 自定义规则拦截 -->
+                    <div class="col-md-6">
+                        <div class="box box-info">
+                            <div class="box-header with-border">
+                                <h3 class="box-title">自定义拦截规则</h3>
+                            </div>
+                            <div class="box-body">
+                                <div class="table-responsive">
+                                <table class="table no-margin">
+                                    <thead>
+                                        <tr>
+                                            <th>拦截域名</th>
+                                            <th>拦截次数</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr v-for="rule in customRule">
+                                            <td><a href="#">{{ rule.site }}</a></td>
+                                            <td><span class="label label-danger">{{ rule.total }}</span></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                </div>
+                            </div>
+
+                            <div class="box-footer clearfix">
+                                <a target="_blank" style="float: right;" @click="drawTable1('1')">more>></a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CC防护拦截 -->
+                    <div class="col-md-6">
+                        <div class="box box-info">
+                            <div class="box-header with-border">
+                                <h3 class="box-title">CC攻击防护</h3>
+                            </div>
+                            <div class="box-body">
+                                <div class="table-responsive">
+                                <table class="table no-margin">
+                                    <thead>
+                                        <tr>
+                                            <th>域名</th>
+                                            <th>拦截IP</th>
+                                            <th>拦截次数</th>
+                                            <th>地理位置</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr v-for="rule in customRule2">
+                                            <td><a href="#">{{ rule.host }}</a></td>
+                                            <td><a href="#">{{ rule.site }}</a></td>
+                                            <td><span class="label label-danger">{{ rule.total }}</span></td>
+                                            <td>{{ rule.address }}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                                </div>
+                            </div>
+
+                            <div class="box-footer clearfix">
+                                <a target="_blank" style="float: right;" @click="drawTable2('1')">more>></a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 趋势图 -->
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="box box-info">
+                            <div class="box-header with-border">
+                                <div class="col-xs-1">
+                                    <a target="_blank" @click="initData( 7,7 )">7天</a>&nbsp;&nbsp;
+                                    <a target="_blank" @click="initData( 30,30 )">30天</a>
+                                </div>
+                                <div class="col-xs-9">
+                                    <i class="fa fa-calendar"></i>&nbsp;开始时间：<input type="text" placeholder="2018-11-05" v-model="sh.date1">
+                                    ~ 结束时间：<input type="text" placeholder="2018-11-08" v-model="sh.date2">
+                                    <button type="button" class="btn btn-primary btn-sm"  @click="initData(8, 8)"><i class="fa fa-search"></i></button>
+                                </div>
+                                <div class="col-xs-2">
+                                    最小刻度：<a target="_blank" @click="draw6( '10m' )">10min</a>&nbsp;&nbsp;
+                                    <a target="_blank" @click="draw6( '1h' )">1h</a>&nbsp;&nbsp;
+                                    <a target="_blank" @click="draw6( '1d' )">1d</a>
+                                </div>
+                            </div>
+                            <div class="box-body">
+                                <div id="wafTrend" style="width:100%; height:480px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+<script type="text/javascript" src="../js/jquery-2.1.1.js"></script>
+<script src="../js/vue.js"></script>
+<script src="../js/element-ui.js"></script>
+<script src="../config.js"></script>
+<script type="text/javascript" src="../js/bootstrap.min.js"></script>
+<script type="text/javascript" src="../js/plugins/jquery.metisMenu.js"></script>
+<script type="text/javascript" src="../js/jq-common.js"></script>
+<script src="../js/echarts.min.js"></script>
+<script src="../js/common.js"></script>
+
+<script>
+
+    var vdata = new Vue({
+    el: '#wrapper',
+    data: function () {
+        return {
+            showCluster: false,
+            sh: {
+                date1: '',
+                date2: ''
+            },
+            data: '',
+            checkSign: '',
+            // waf拦截饼状图
+            requests_count: "",
+            interceptors_deny_count: "",
+            interceptors_log_count: "",
+            chartData: {
+                "chartPie_title_data" : [],
+                "chartPie_inline_data": [],
+                "chartPie_outline_data": [],
+            },
+            option1: {
+                tooltip: {
+                    trigger: 'item',
+                    formatter: "{a} <br/>{b}: {c} ({d}%)"
+                },
+                legend: {
+                    orient: 'vertical',
+                    left: 15,
+                    top: 10,
+                    data: []
+                },
+                series: [
+                    {
+                        name:'记录请求',
+                        type:'pie',
+                        selectedMode: 'single',
+                        radius: [0, '30%'],
+                        center: ['50%', '50%'],
+                        label: {
+                            position: 'inside'
+                        },
+                        data: []
+                    },
+                    {
+                        name:'waf拦截',
+                        type:'pie',
+                        radius: ['40%', '55%'],
+                        center: ['50%', '50%'],
+                        label: {
+                            normal: {
+                                formatter: '{a|{a}}{abg|}\n{hr|}\n  {b|{b}：}{c}  {per|{d}%}  ',
+                                backgroundColor: '#eee',
+                                borderColor: '#aaa',
+                                borderWidth: 1,
+                                borderRadius: 4,
+                                rich: {
+                                    a: {
+                                        color: '#999',
+                                        lineHeight: 22,
+                                        align: 'center'
+                                    },
+                                    hr: {
+                                        borderColor: '#aaa',
+                                        width: '100%',
+                                        borderWidth: 0.5,
+                                        height: 0
+                                    },
+                                    b: {
+                                        fontSize: 16,
+                                        lineHeight: 33
+                                    },
+                                    per: {
+                                        color: '#eee',
+                                        backgroundColor: '#334455',
+                                        padding: [2, 4],
+                                        borderRadius: 2
+                                    }
+                                }
+                            }
+                        },
+                        data: []
+                    }
+                ]
+            },
+            // pie图2
+            gl_method: [],
+            gl_method_title: [],
+            option4: {
+                tooltip: {
+                    trigger: 'item',
+                    formatter: "{a} <br/>{b} : {c} ({d}%)"
+                },
+                legend: {
+                    orient: 'vertical',
+                    left: 15,
+                    top: 10,
+                    data: []
+                },
+                series: [
+                    {
+                        name: '访问方式',
+                        type: 'pie',
+                        radius: '55%',
+                        center: ['50%', '50%'],
+                        data: [],
+                        itemStyle: {
+                            emphasis: {
+                                shadowBlur: 10,
+                                shadowOffsetX: 0,
+                                shadowColor: 'rgba(0, 0, 0, 0.5)'
+                            }
+                        }
+                    }
+                ],
+            },
+            // 表1
+            customRule: [],
+            customRule_count: 0 ,
+            // 表2
+            customRule2: [],
+            customRule_count2: 0 ,
+            // trend图6
+            waf_start_day: 0,
+            waf_end_day: 0,
+            waf_log: [],
+            waf_deny: [],
+            option6: {
+                title: {
+                    text: ''
+                },
+                tooltip: {
+                    trigger: 'axis'
+                },
+                toolbox: {
+                    x:'80%',
+                    y:'top',
+                    show : true,
+                    feature : {
+                        mark : {show: true},
+                        saveAsImage : {show: true},
+                        dataView:{show: true},
+                    }
+                },
+                legend: {
+                    data: ['waf_log', 'waf_deny', 'waf_req']
+                },
+                grid: {
+                    left: '3%',
+                    right: '4%',
+                    bottom: '3%',
+                    containLabel: true
+                },
+                xAxis:{
+                    type: 'category',
+                    boundaryGap: false,
+                    data:[]
+                },
+                yAxis : [
+                    {
+                        type : 'value'
+                    }
+                ],
+                series : [
+                    {
+                        name: 'waf_log',
+                        type: 'line',
+                        data: []
+                    },
+                    {
+                        name: 'waf_deny',
+                        type: 'line',
+                        data: []
+                    },
+                    {
+                        name: 'waf_req',
+                        type: 'line',
+                        data: []
+                    },
+                ]
+            },
+
+        }
+    },
+    watch: {
+        checkSign: function (val) {
+            if (val == "sign error") {
+                window.location = '/login.html';
+            }
+        }
+    },
+    mounted() {
+        this.draw1();
+        this.draw4();
+        this.drawTable1(0);
+        this.draw6("init");
+        this.drawTable2(0);
+        //setTimeout(this.drawTable2(0),3000);
+
+    },
+    updated: function () {
+
+    },
+    destroyed() {
+        this.showCluster = false;
+    },
+    methods: {
+        // tren图6
+        draw6(scale){
+            // 第一次加载
+            if(this.waf_start_day == 0){
+                var _sDate = new Date(new Date().getTime() - 24 * 60 * 60 * 1000 * 7);
+                var _eDate = new Date();
+            } else {
+                var _sDate = new Date(this.waf_start_day); //默认 X_list会改变时间的变量,所以新new一个对象,保证不会改变原来的时间变量
+                var _eDate = new Date(this.waf_end_day);
+            }
+            var stime = DateFormt( _sDate, "yyyy-MM-dd" ) ;
+            var etime = DateFormt( _eDate, "yyyy-MM-dd" ) ;
+            if("init" == String(scale)){
+                var baseLogUri = URL + '/api/v2/data_Mod/trendx?key=waf_log&stime=' + stime + '&etime=' + etime ;
+                var baseDenyUri = URL + '/api/v2/data_Mod/trendx?key=waf_deny&stime=' + stime + '&etime=' + etime ;
+                var waf_log, waf_deny;
+                waf_log = wafReq(baseLogUri, "get", {});
+                waf_deny = wafReq(baseDenyUri, "get", {});
+                this.waf_log = waf_log;
+                this.waf_deny = waf_deny;
+            }
+            mDate = {
+                "xData": [],
+                "waf_log": [],
+                "waf_deny": [],
+                "waf_req": [],
+            }
+
+            switch(String(scale)){
+                case '1d':
+                    // 获取1d刻度的数据
+                    mTime = X_list( _sDate, _eDate, "1d" );
+                    for(var i in mTime) {
+                        var l = 0 ;
+                        var d = 0 ;
+                        // 1天内的时间段对应的数据累加
+                        var dateArr = mTime[i] ;
+                        for(var j in dateArr){
+                            var t = dateArr[j];
+                            l = l + (this.waf_log[t] || 0) ;
+                            d = d + (this.waf_deny[t] || 0) ;
+                        }
+                        var r = l + d ;
+                        mDate["xData"].push( i );
+                        mDate["waf_log"].push( l ) ;
+                        mDate["waf_deny"].push( d ) ;
+                        mDate["waf_req"].push( r ) ;
+                    }
+                    break;
+                case '1h':
+                    // 获取1h刻度的数据
+                    // console.log(_sDate, _eDate);
+                    mTime = X_list( _sDate, _eDate, "1h" );
+                    // console.log(mTime);
+                    for(var i in mTime) {
+                        var l = 0 ;
+                        var d = 0 ;
+                        // 1小时内的时间段对应的数据累加
+                        var dateArr = mTime[i] ;
+                        for(var j in dateArr){
+                            var t = dateArr[j];
+                            l = l + this.waf_log[t] ;
+                            d = d + this.waf_deny[t] ;
+                        }
+                        var r = l + d ;
+                        mDate["xData"].push( i );
+                        mDate["waf_log"].push( l ) ;
+                        mDate["waf_deny"].push( d ) ;
+                        mDate["waf_req"].push( r ) ;
+                    }
+                    break;
+                case '10m':
+                    // 获取10min刻度的数据
+                    mTime = X_list( _sDate, _eDate, "10m" )
+                    for(var i in mTime) {
+                        var t = mTime[i] ;
+                        var l = this.waf_log[t] ;
+                        var d = this.waf_deny[t] ;
+                        var r = l + d ;
+                        mDate["xData"].push(t);
+                        mDate["waf_log"].push( l ) ;
+                        mDate["waf_deny"].push( d ) ;
+                        mDate["waf_req"].push( r ) ;
+                    }
+                    break;
+                default:
+                    // 获取10min刻度的数据
+                    mTime = X_list( _sDate, _eDate, "10m" )
+                    for(var i in mTime) {
+                        var t = mTime[i] ;
+                        var l = waf_log[t] ;
+                        var d = waf_deny[t] ;
+                        var r = l + d ;
+                        mDate["xData"].push(t);
+                        mDate["waf_log"].push( l ) ;
+                        mDate["waf_deny"].push( d ) ;
+                        mDate["waf_req"].push( r ) ;
+                    }
+                    break;
+            }
+            // 图表配置
+            let echartsDOM = document.getElementById('wafTrend');
+            let myEcharts = echarts.init(echartsDOM);
+            this.option6.xAxis.data = mDate["xData"];
+            this.option6.series[0].data = mDate["waf_log"];
+            this.option6.series[1].data = mDate["waf_deny"];
+            this.option6.series[2].data = mDate["waf_req"];
+            myEcharts.setOption( this.option6 );
+        },
+        initData(st, et){
+            // 7天的数据
+            if(st == 7){
+                this.waf_start_day = new Date(new Date().getTime() - 24 * 60 * 60 * 1000 * 7);
+                this.waf_end_day = new Date();
+                this.draw6("init");
+            } else if(st == 30){
+                this.waf_start_day = new Date(new Date().getTime() - 24 * 60 * 60 * 1000 * 30);
+                this.waf_end_day = new Date();
+                this.draw6("init");
+            } else{
+                var reg = /^(\d{4})-(\d{2})-(\d{2})$/;
+                var str = this.sh.date1;
+                var str2 = this.sh.date2;
+                var arr = reg.exec(str);
+
+                var from_date, end_date ;
+                var vildate = false;
+                if (reg.test(str)&&RegExp.$2<=12&&RegExp.$3<=31){
+                    from_date = new Date(str + " 00:00:00" ) ;
+                    vildate = true;
+                }
+                if (reg.test(str)&&RegExp.$2<=12&&RegExp.$3<=31){
+                    end_date = new Date(str2 + " 00:00:00" ) ;
+                    vildate = true;
+                }
+
+                if(!vildate){
+                    this.$notify({
+                        type: 'warning',
+                        title: '提示',
+                        message: "请输入正确的时间格式",
+                        duration: 4000
+                    });
+                }
+                if(end_date>from_date){
+                    this.waf_start_day = from_date;
+                    this.waf_end_day = end_date;
+                    this.draw6("init");
+                }else{
+                    this.$notify({
+                        type: 'warning',
+                        title: '提示',
+                        message: "结束时间小于开始时间",
+                        duration: 4000
+                    });
+                }
+            }
+        },
+
+        //pie图1
+        draw1(){
+                var that = this;
+                var result;
+                function check(){
+                    if(a){
+                        // 获取数据
+                        var outLine = result.waf;
+                        for(var i in outLine){
+                            var v = parseInt(outLine[i])
+                            var n = String(i)
+                            if(v != 0 ) {
+                                that.chartData.chartPie_outline_data.push( { value: v, name: n });
+                            }
+                        }
+
+                        waf_js = {};
+                        waf_js.app_Mod = parseInt( outLine['app_Mod deny'] ) || 0;
+                        waf_js.args_Mod = parseInt( outLine['args_Mod deny'] ) + parseInt( outLine['args_Mod log'] ) || 0;
+                        waf_js.cookie_Mod = parseInt( outLine['cookie_Mod deny'] ) + parseInt( outLine['cookie_Mod log'] ) || 0;
+                        waf_js.header_Mod = parseInt( outLine['header_Mod deny'] ) + parseInt( outLine['header_Mod log'] ) || 0;
+                        waf_js.host_Mod = parseInt( outLine['host_Mod deny'] ) || 0;
+                        waf_js.host_method_Mod = parseInt( outLine['host_method_Mod deny'] ) || 0;
+                        waf_js.ip_Mod = parseInt( outLine['ip_Mod deny'] ) + parseInt( outLine['ip_Mod log']) || 0;
+                        waf_js.post_Mod = parseInt( outLine['post_Mod deny'] ) + parseInt( outLine['post_Mod log'] ) || 0;
+                        waf_js.referer_Mod = parseInt( outLine['referer_Mod deny'] ) + parseInt( outLine['referer_Mod log']  ) || 0;
+                        waf_js.uri_Mod = parseInt( outLine['uri_Mod deny'] ) + parseInt( outLine['uri_Mod log'] ) || 0;
+                        waf_js.useragent_Mod = parseInt( outLine['useragent_Mod deny'] ) + parseInt( outLine['useragent_Mod log'] ) || 0;
+
+                        for(var i in waf_js){
+                            var v = parseInt(waf_js[i]);
+                            var n = String(i);
+                            that.chartData.chartPie_title_data.push(n);
+                            if(v != 0 ) {
+                                that.chartData.chartPie_inline_data.push({value: v , name: n});
+                            }
+                        }
+                        that.requests_count = result["request count"];
+                        that.interceptors_deny_count = parseInt( outLine['app_Mod deny'] )
+                        + parseInt( outLine['args_Mod deny'] )
+                        + parseInt( outLine['cookie_Mod deny'] )
+                        + parseInt( outLine['header_Mod deny'] )
+                        + parseInt( outLine['host_Mod deny'] )
+                        + parseInt( outLine['host_method_Mod deny'] )
+                        + parseInt( outLine['ip_Mod deny'] )
+                        + parseInt( outLine['post_Mod deny'] )
+                        + parseInt( outLine['referer_Mod deny'] )
+                        + parseInt( outLine['uri_Mod deny'] )
+                        + parseInt( outLine['useragent_Mod deny'] )
+
+                        that.interceptors_log_count = parseInt( outLine['args_Mod log'] )
+                        + parseInt( outLine['cookie_Mod log'] )
+                        + parseInt( outLine['header_Mod log'] )
+                        + parseInt( outLine['ip_Mod log'] )
+                        + parseInt( outLine['post_Mod log'] )
+                        + parseInt( outLine['referer_Mod log'] )
+                        + parseInt( outLine['uri_Mod log'] )
+                        + parseInt( outLine['useragent_Mod log'] )
+
+                        // 填充图表
+                        let echartsDOM = document.getElementById('draw1');
+                        let myEcharts = echarts.init(echartsDOM);
+                        that.option1.legend.data = that.chartData.chartPie_title_data;
+                        that.option1.series[0].data = that.chartData.chartPie_inline_data;
+                        that.option1.series[1].data = that.chartData.chartPie_outline_data;
+                        myEcharts.setOption(that.option1);
+                    }
+                }
+                var baseUri = URL + '/api/v2/data_Mod/global' ;
+                var a;
+                $.get(baseUri, {}, function (data) {
+                    a = data;
+                    if (data.code == 'ok') {
+                        result = data.msg;
+                    } else {
+                        if (data.msg == "sign error") {
+                            that.checkSign = "sign error";
+                        }
+                        that.$notify({
+                            type: 'warning',
+                            title: '提示',
+                            message: data.msg,
+                            duration: 4000
+                        });
+                    }
+                    check();
+                });
+        },
+        //pie图2
+        draw4(){
+            var that = this;
+            var result;
+            function check(){
+                if(a){
+                    // 获取数据
+                    var glmodel_data = result.gl_method;
+                    var other = 0;
+                    for(var i in glmodel_data){
+                        v = parseInt( glmodel_data[i] )
+                        n = String( i.split(" ")[0] )
+                        if (n === 'GET' || n === 'POST' || n === 'OPTIONS' || n === 'PUT' || n === 'HEAD') {
+                            that.gl_method_title.push( n )
+                            that.gl_method.push({ name: n, value : v } );
+                        } else {
+                            other += v;
+                        }
+                    }
+                    that.gl_method_title.push( 'OTHER' )
+                    that.gl_method.push({ name: 'OTHER', value : other } );
+                    // 填充图表
+                    let echartsDOM = document.getElementById('draw4');
+                    let myEcharts = echarts.init(echartsDOM);
+                    that.option4.legend.data = that.gl_method_title;
+                    that.option4.series[0].data = that.gl_method;
+                    myEcharts.setOption(that.option4);
+                }
+            }
+            var baseUri = URL + '/api/v2/data_Mod/global' ;
+            var a;
+            $.get(baseUri, {}, function (data) {
+                a = data;
+                if (data.code == 'ok') {
+                    result = data.msg;
+                } else {
+                    if (data.msg == "sign error") {
+                        that.checkSign = "sign error";
+                    }
+                    that.$notify({
+                        type: 'warning',
+                        title: '提示',
+                        message: data.msg,
+                        duration: 4000
+                    });
+                }
+                check();
+            });
+        },
+        // 自定义拦截表单
+        drawTable1(tt) {
+            var that = this;
+            var result;
+
+            function check(tt) {
+                if (a) {
+                    // 获取数据
+                    var customRule_data = result.host_mod;
+                    var test = new Array();
+                    for(var i in customRule_data){
+                        test.push({ site: String( i.split(" ")[0] ), total : parseInt( customRule_data[i] ) } );
+                        that.customRule_count = that.customRule_count + parseInt( customRule_data[i] );
+                    }
+                    if(0 == parseInt(tt)){
+                        that.customRule = test.slice(0,5);
+                    }else{
+                        that.customRule = test;
+                    }
+
+
+                }
+            }
+            var baseUri = URL + '/api/v2/data_Mod/global';
+            var a;
+            $.get(baseUri, {}, function(data) {
+                a = data;
+                if (data.code == 'ok') {
+                    result = data.msg;
+                } else {
+                    if (data.msg == "sign error") {
+                        that.checkSign = "sign error";
+                    }
+                    that.$notify({
+                        type: 'warning',
+                        title: '提示',
+                        message: data.msg,
+                        duration: 4000
+                    });
+                }
+                check(tt);
+            });
+        },
+        // CC防护表单
+        drawTable2(tt) {
+            var that = this;
+            var result;
+            function check(tt) {
+                if (a) {
+                    // 获取数据
+                    var customRule_data = result.ip_mod;
+                    var test = new Array();
+                    var address = "火星";
+                    var url = IP_URL + String(site)+'?lang=zh-CN';
+
+                    for(var i in customRule_data){
+                        var arrytmp = i.split(" ")[0].split('_');
+                        var host;
+                        var site;
+                        if (arrytmp.length >= 2){
+                            site = arrytmp[1]
+                            host = arrytmp[0]
+                        }else{
+                            site = arrytmp[0]
+                            host = "*"
+                        }
+                        if(0 !== parseInt(tt)){ // 一进页面不请求位置
+                            // var url = 'http://ip-api.com/json/115.191.200.34?lang=zh-CN';
+                            var res = wafReq2(url, "get", {});
+                            if(res["status"] == "success"){
+                                address = res["country"] + (res["city"] || '') ;
+                            }
+                        }
+                        test.push({ host: host,site: site, total : parseInt( customRule_data[i] ) , address : address || ''} );
+                        that.customRule_count2 = that.customRule_count2 + parseInt( customRule_data[i] );
+                    }
+                    that.customRule2 = test;
+                }
+            }
+            var baseUri = URL + '/api/v2/data_Mod/global';
+            var a;
+            $.get(baseUri, {}, function(data) {
+                a = data;
+                if (data.code == 'ok') {
+                    result = data.msg;
+                } else {
+                    if (data.msg == "sign error") {
+                        that.checkSign = "sign error";
+                    }
+                    that.$notify({
+                        type: 'warning',
+                        title: '提示',
+                        message: data.msg,
+                        duration: 4000
+                    });
+                }
+                check(tt);
+            });
+        }
+    },
+});
+
+</script>
+</body>
+
+</html>
