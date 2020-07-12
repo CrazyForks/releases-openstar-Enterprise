@@ -11,7 +11,7 @@ export PATH
 #=================================================
 
 #set -x
-sh_ver="0.0.2"
+sh_ver="0.0.3"
 github="raw.githubusercontent.com/op-sec-team/releases-openstar-Enterprise/tengine"
 
 Green_font_prefix="\033[32m" && Red_font_prefix="\033[31m" && Green_background_prefix="\033[42;37m" && Red_background_prefix="\033[41;37m" && Font_color_suffix="\033[0m"
@@ -30,7 +30,8 @@ mkdir -p ${install_path}
 jit_version=2.1.0-beta3
 luajit_uri=http://luajit.org/download/LuaJIT-${jit_version}.tar.gz
 
-or_uri=https://openresty.org/download/openresty-1.15.8.2.tar.gz
+or_version=1.15.8.3
+or_uri=https://openresty.org/download/openresty-${or_version}.tar.gz
 
 luarocks_version=3.2.1
 luarocks_uri=https://luarocks.org/releases/luarocks-${luarocks_version}.tar.gz
@@ -159,12 +160,13 @@ jemalloc_install(){
 
 jit_git_install(){
     if [[ -f /usr/local/lib/libluajit-5.1.so ]]; then
-    echo "luajit(github) install!" && sleep 1s && return
+        echo "luajit(github) install!" && sleep 1s && return
     fi
     cd ${build_path} && rm -rf luajit2
-    git clone https://github.com/openresty/luajit2 || (echo "git clone luajit error" && exit 1)
+    git clone --depth=1 https://github.com/openresty/luajit2 || (echo "git clone luajit error" && exit 1)
     cd luajit2 && make && make install
     echo "/usr/local/lib" > /etc/ld.so.conf.d/usr_local_lib.conf
+    ln -sf /usr/local/luajit/bin/luajit-${jit_version} /usr/local/luajit/bin/luajit
     ldconfig
 }
 
@@ -177,35 +179,79 @@ luarocks_install(){
     rm -rf luarocks-${luarocks_version} && tar xvzf luarocks-${luarocks_version}.tar.gz
     cd luarocks-${luarocks_version}
     ./configure --prefix=${install_path}/luarocks \
-                --with-lua=${install_path}/luajit/ \
-                --with-lua-include=${install_path}/luajit/include/luajit-2.1 \
+                --with-lua=/usr/local/ \
+                --with-lua-include=/usr/local/include/luajit-2.1 \
                 --lua-suffix='jit' || (echo "configure luarocks Error" && exit 1)
     make
     make install
     ln -sf ${install_path}/luarocks/bin/luarocks /usr/bin/luarocks
+    /usr/bin/luarocks install lua-cjson
 }
 
 or_down(){
-    cd ${build_path} && rm -rf openresty-1.15.8.2.tar.gz
+    cd ${build_path} && rm -rf openresty-${or_version}.tar.gz
     wget ${or_uri} ||(echo "wget openresty error" && exit 1)
-    rm -rf openresty-1.15.8.2 && tar -xvf openresty-1.15.8.2.tar.gz
+    rm -rf openresty-${or_version} && tar -xvf openresty-${or_version}.tar.gz
 }
 
 #tengine安装
 function tengine_install(){
     if [[ "${release}" == "centos" ]]; then
-        yum install -y wget make gcc readline-devel perl pcre-devel openssl-devel git unzip zip htop goaccess dos2unix bzip2 libmaxminddb-devel
+        yum install epel-release
+        mv /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.backup
+        wget -O /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-${version}.repo
+        # yum install -y http://rpms.famillecollet.com/enterprise/remi-release-${version}.rpm
+        yum clean all
+        yum makecache
+        yum install -y wget make gcc readline-devel perl pcre-devel openssl-devel git unzip zip htop dos2unix bzip2
+        yum install -y goaccess libmaxminddb-devel
+        # yum install -y wget make gcc readline-devel perl pcre-devel openssl-devel git unzip zip htop goaccess dos2unix bzip2 libmaxminddb-devel
     elif [[ "${release}" == "debian" ]]; then
-        apt-get install -y libpcre3-dev libssl-dev perl make build-essential curl git unzip zip htop goaccess dos2unix bzip2 libmaxminddb-devel
+        # Debian10  Debian9   Debian8  Debian7
+        # buster    stretch   jessie   wheezy
+        if [[ "${version}" == "10" ]]; then
+            debapt=buster
+        elif [[ "${version}" == "9" ]]; then
+            debapt=stretch
+        elif [[ "${version}" == "8" ]]; then
+            debapt=jessie
+        else
+            debapt=wheezy
+        fi
+        mv /etc/apt/sources.list /etc/apt/sources.list.bak
+        echo -e "deb http://mirrors.aliyun.com/debian ${debapt} main contrib non-free" >/etc/apt/sources.list
+        echo -e "deb-src http://mirrors.aliyun.com/debian ${debapt} main contrib non-free" >>/etc/apt/sources.list
+        echo -e "deb http://mirrors.aliyun.com/debian ${debapt}-updates main contrib non-free" >>/etc/apt/sources.list
+        echo -e "deb-src http://mirrors.aliyun.com/debian ${debapt}-updates main contrib non-free" >>/etc/apt/sources.list
+        echo -e "deb http://mirrors.aliyun.com/debian-security ${debapt}/updates main contrib non-free" >>/etc/apt/sources.list
+        echo -e "deb-src http://mirrors.aliyun.com/debian-security ${debapt}/updates main contrib non-free" >>/etc/apt/sources.list
+        apt-get install -y libpcre3-dev libssl-dev perl make build-essential curl git unzip zip htop dos2unix bzip2
+        apt-get install -y goaccess libmaxminddb-devel
     elif [[ "${release}" == "ubuntu" ]]; then
-        apt-get install -y libpcre3-dev libssl-dev perl make build-essential curl git unzip zip htop goaccess dos2unix bzip2 libmaxminddb-devel
+        mv /etc/apt/sources.list /etc/apt/sources.list.bak
+        echo -e "deb http://mirrors.aliyun.com/ubuntu/ trusty main restricted universe multiverse" >/etc/apt/sources.list
+        echo -e "deb http://mirrors.aliyun.com/ubuntu/ trusty-security main restricted universe multiverse" >>/etc/apt/sources.list
+        echo -e "deb http://mirrors.aliyun.com/ubuntu/ trusty-updates main restricted universe multiverse" >>/etc/apt/sources.list
+        echo -e "deb http://mirrors.aliyun.com/ubuntu/ trusty-proposed main restricted universe multiverse" >>/etc/apt/sources.list
+        echo -e "deb http://mirrors.aliyun.com/ubuntu/ trusty-backports main restricted universe multiverse" >>/etc/apt/sources.list
+        echo -e "deb-src http://mirrors.aliyun.com/ubuntu/ trusty main restricted universe multiverse" >>/etc/apt/sources.list
+        echo -e "deb-src http://mirrors.aliyun.com/ubuntu/ trusty-security main restricted universe multiverse" >>/etc/apt/sources.list
+        echo -e "deb-src http://mirrors.aliyun.com/ubuntu/ trusty-updates main restricted universe multiverse" >>/etc/apt/sources.list
+        echo -e "deb-src http://mirrors.aliyun.com/ubuntu/ trusty-proposed main restricted universe multiverse" >>/etc/apt/sources.list
+        echo -e "deb-src http://mirrors.aliyun.com/ubuntu/ trusty-backports main restricted universe multiverse" >>/etc/apt/sources.list
+        apt-get install -y libpcre3-dev libssl-dev perl make build-essential curl git unzip zip htop dos2unix bzip2
+        apt-get install -y goaccess libmaxminddb-devel
     else
         echo -e "${Error} openstar脚本不支持当前系统 ${release} ${version} ${bit} !" && exit 1
     fi
     jemalloc_install
     jit_git_install
     or_down
-    cd ${build_path}/openresty-1.15.8.2/bundle && rm -rf tengine*
+    cd ${build_path}/openresty-${or_version}/bundle && rm -rf tengine*
+    git clone --depth=1 https://github.com/leev/ngx_http_geoip2_module.git || (echo "git clone ngx_http_geoip2_module Error" && exit 1)
+    rm -rf ngx_cache_purge-${purge_version}.tar.gz
+    wget ${purge_uri} || (echo "wget purge Error" && exit 1)
+    tar zxvf ngx_cache_purge-${purge_version}.tar.gz
     wget ${tengine_uri} || (echo "wget tengine error" && exit 1)
     rm -rf tengine-${tengine_version} && tar -xvf tengine-${tengine_version}.tar.gz
     cd tengine-${tengine_version}
@@ -213,11 +259,18 @@ function tengine_install(){
         --with-cc-opt=-O2 \
         --add-module=../ngx_devel_kit-0.3.1rc1 \
         --add-module=../headers-more-nginx-module-0.33 \
+        --add-module=../ngx_cache_purge-${purge_version} \
+        --add-module=../ngx_http_geoip2_module \
         --with-http_lua_module \
         --with-http_realip_module \
         --with-http_v2_module \
+        --with-stream \
+        --with-stream_ssl_module \
+        --with-stream_ssl_preread_module \
+        --with-http_ssl_module \
         --with-luajit-lib=/usr/local/lib/ \
         --with-luajit-inc=/usr/local/include/luajit-2.1/ \
+        --without-luajit-gc64 \
         --with-ld-opt=-Wl,-rpath,/usr/local/lib \
         --with-ld-opt='-ljemalloc' ||(echo "configure tengine error" && exit 1)
     make && make install
@@ -256,25 +309,35 @@ openstar_menu(){
     ${Green_font_prefix}0.${Font_color_suffix} 保留 nginx.conf waf.conf waf规则(conf_json/.*)
     ${Green_font_prefix}1.${Font_color_suffix} 保留 waf规则(conf_json/.*)
     ${Green_font_prefix}2.${Font_color_suffix} 保留 nginx.conf waf.conf
-    ${Green_font_prefix}3.${Font_color_suffix} 不保留 nginx.conf waf.conf waf规则(conf_json/.*)
+    ${Green_font_prefix}3.${Font_color_suffix} 保留 base.json admin_Mod.json nginx_Mod.json certs_Mod plugin_Mod
     ${Green_font_prefix}4.${Font_color_suffix} 返回主界面
     ————————————————————————————————" && echo
     read -p " 请输入数字 [0-4]:" num
     case "$num" in
         0) # 保留 nginx.conf waf.conf waf规则(conf_json/.*)
+            cp -Rf ${install_path}/openstar.bak/regsn.json ${install_path}/openstar/
             cp -Rf ${install_path}/openstar.bak/conf/* ${install_path}/openstar/conf/
             cp -Rf ${install_path}/openstar.bak/conf_json/* ${install_path}/openstar/conf_json/
             return
         ;;
         1) # 保留 waf规则(conf_json/.*)
+            cp -Rf ${install_path}/openstar.bak/regsn.json ${install_path}/openstar/
             cp -Rf ${install_path}/openstar.bak/conf_json/* ${install_path}/openstar/conf_json/
             return
         ;;
         2) # 保留 nginx.conf waf.conf
+            cp -Rf ${install_path}/openstar.bak/regsn.json ${install_path}/openstar/
             cp -Rf ${install_path}/openstar.bak/conf/* ${install_path}/openstar/conf/
             return
         ;;
-        3) # 不保留 nginx.conf waf.conf waf规则(conf_json/.*)
+        3) # 保留 base.json admin_Mod.json nginx_Mod.json certs_Mod plugin_Mod
+            cp -Rf ${install_path}/openstar.bak/regsn.json ${install_path}/openstar/
+            cp -Rf ${install_path}/openstar.bak/conf_json/admin_Mod.json ${install_path}/openstar/conf_json/
+            cp -Rf ${install_path}/openstar.bak/conf_json/base.json ${install_path}/openstar/conf_json/
+            cp -Rf ${install_path}/openstar.bak/conf_json/nginx_Mod.json ${install_path}/openstar/conf_json/
+            cp -Rf ${install_path}/openstar.bak/conf_json/certs_Mod.json ${install_path}/openstar/conf_json/
+            cp -Rf ${install_path}/openstar.bak/conf_json/plugin_Mod.json ${install_path}/openstar/conf_json/
+            cp -Rf ${install_path}/openstar.bak/lib/plugin/* ${install_path}/openstar/lib/plugin/
             return
         ;;
         4)
@@ -346,6 +409,7 @@ function check(){
     ln -sf ${install_path}/openstar/conf/waf.conf ${install_path}/nginx/conf/waf.conf
     ln -sf ${install_path}/openstar/conf/gzip.conf ${install_path}/nginx/conf/gzip.conf
     ln -sf ${install_path}/openstar/conf/realip.conf ${install_path}/nginx/conf/realip.conf
+    # ln -sf ${install_path}/luarocks/lib/lua/5.1/cjson.so ${install_path}/openstar/lib/cjson.so
     cd ${install_path}/nginx/html && (ls |grep "favicon.ico" || wget https://www.nginx.org/favicon.ico)
     cp -rf ${install_path}/nginx/html/favicon.ico ${install_path}/nginx/html/view-private/
     cp -rf ${install_path}/nginx/html/favicon.ico ${install_path}/nginx/html/view-master/
@@ -369,11 +433,12 @@ start_menu(){
      ${Green_font_prefix}4.${Font_color_suffix} 更新 openstar
      ${Green_font_prefix}5.${Font_color_suffix} 查看云端 openstar 版本
      ${Green_font_prefix}6.${Font_color_suffix} 更新 openstar 界面 view
-     ${Green_font_prefix}7.${Font_color_suffix} 安装 luarocks
     —————————— 杂项管理     ——————————
-     ${Green_font_prefix}8.${Font_color_suffix}  openstar运行检查
-     ${Green_font_prefix}9.${Font_color_suffix}  查看系统信息
-     ${Green_font_prefix}10.${Font_color_suffix} 退出脚本
+     ${Green_font_prefix}7.${Font_color_suffix} 安装 luajit
+     ${Green_font_prefix}8.${Font_color_suffix} 安装 luarocks
+     ${Green_font_prefix}9.${Font_color_suffix}  openstar运行检查
+     ${Green_font_prefix}10.${Font_color_suffix}  查看系统信息
+     ${Green_font_prefix}11.${Font_color_suffix} 退出脚本
     ———————————————————————————" && echo
     check_openstar
     echo -e " 当前操作系统：${Green_font_prefix}[${release}]${Font_color_suffix}"
@@ -413,18 +478,22 @@ start_menu(){
             start_menu
         ;;
         7)
-            luarocks_install
+            jit_git_install
             start_menu # 待定
         ;;
         8)
+            luarocks_install
+            start_menu # 待定
+        ;;
+        9)
             check # 运行之前检查
             start_menu
         ;;
-        9)
+        10)
             os_msg # 查看系统信息
             exit 1
         ;;
-        10)
+        11)
             exit 1
         ;;
         *)

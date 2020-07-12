@@ -403,8 +403,8 @@ start_menu(){
      ${Green_font_prefix}4.${Font_color_suffix} 更新 openstar
      ${Green_font_prefix}5.${Font_color_suffix} 查看云端 openstar 版本
      ${Green_font_prefix}6.${Font_color_suffix} 更新 openstar 界面 view
-     ${Green_font_prefix}7.${Font_color_suffix} 安装 luarocks
     —————————— 杂项管理     ——————————
+     ${Green_font_prefix}7.${Font_color_suffix} 安装 luarocks
      ${Green_font_prefix}8.${Font_color_suffix}  openstar运行检查
      ${Green_font_prefix}9.${Font_color_suffix}  查看系统信息
      ${Green_font_prefix}10.${Font_color_suffix} 退出脚本
