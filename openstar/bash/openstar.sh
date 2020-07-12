@@ -170,7 +170,7 @@ luarocks_install(){
                 --lua-suffix='jit' || (echo "configure luarocks Error" && exit 1)
     make
     make install
-    ln -sf ${install_path}/luarocks/bin/luarocks /usr/bin/luarocks
+    # ln -sf ${install_path}/luarocks/bin/luarocks /usr/bin/luarocks
 }
 
 

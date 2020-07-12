@@ -166,7 +166,6 @@ jit_git_install(){
     git clone --depth=1 https://github.com/openresty/luajit2 || (echo "git clone luajit error" && exit 1)
     cd luajit2 && make && make install
     echo "/usr/local/lib" > /etc/ld.so.conf.d/usr_local_lib.conf
-    ln -sf /usr/local/luajit/bin/luajit-${jit_version} /usr/local/luajit/bin/luajit
     ldconfig
 }
 
@@ -184,8 +183,8 @@ luarocks_install(){
                 --lua-suffix='jit' || (echo "configure luarocks Error" && exit 1)
     make
     make install
-    ln -sf ${install_path}/luarocks/bin/luarocks /usr/bin/luarocks
-    /usr/bin/luarocks install lua-cjson
+    # ln -sf ${install_path}/luarocks/bin/luarocks /usr/bin/luarocks
+    ${install_path}/luarocks/bin/luarocks install lua-cjson
 }
 
 or_down(){
@@ -270,7 +269,6 @@ function tengine_install(){
         --with-http_ssl_module \
         --with-luajit-lib=/usr/local/lib/ \
         --with-luajit-inc=/usr/local/include/luajit-2.1/ \
-        --without-luajit-gc64 \
         --with-ld-opt=-Wl,-rpath,/usr/local/lib \
         --with-ld-opt='-ljemalloc' ||(echo "configure tengine error" && exit 1)
     make && make install
