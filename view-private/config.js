@@ -1,7 +1,4 @@
 var URL = '';
-// var URL = 'http://172.17.10.9:5460';
-// var URL =  "http://192.168.4.145:5460";
-// var URL =  "http://172.21.196.10:5460";
 var IP_URL =  "http://ip-api.com/json/"; // CC攻击防护api
 var branch  = "private"
 var version = "2.1.1"
@@ -349,6 +346,9 @@ $(document).ready(function () {
     var href = window.location.toString();
     if(href.includes('global')){
         $('#global').addClass('in');
+    }
+    if(href.includes('report')){
+        $('#report').addClass('in');
     }
     if(href.includes('extend')){
         $('#extend').addClass('in');
