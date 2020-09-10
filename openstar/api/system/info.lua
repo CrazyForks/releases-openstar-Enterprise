@@ -46,4 +46,4 @@ map_cmd["sar -u"] = "/usr/bin/sar -u"
 map_cmd["sar -f"] = "/usr/bin/sar -A -f /var/log/sa/sa".._day
 
 local re,msg = do_shell(map_cmd[_cmd] or "uname -a")
-optl.sayHtml_ext({cmd=_cmd,re=re,msg=msg})
+optl.sayHtml_ext({ code="ok", msg = re })

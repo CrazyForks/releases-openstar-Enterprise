@@ -1,7 +1,7 @@
 #!/bin/bash
 # 该脚本在WAF启动时执行
 # 脚本版本号
-version=0.2
+version=0.3
 install_path=/opt/openresty
 
 
@@ -16,13 +16,13 @@ if [ "$1" = "start" ];then
     chmod 751 ${install_path}/nginx/sbin/nginx
     chmod u+s ${install_path}/nginx/sbin/nginx
     chown nobody:nobody ${install_path}/nginx/logs/*
-    mv -f ${install_path}/nginx/conf/nginx.conf ${install_path}/nginx/conf/nginx.conf.bak
+    #mv -f ${install_path}/nginx/conf/nginx.conf ${install_path}/nginx/conf/nginx.conf.bak
     ln -sf ${install_path}/openstar/conf/nginx.conf ${install_path}/nginx/conf/nginx.conf
     ln -sf ${install_path}/openstar/conf/waf.conf ${install_path}/nginx/conf/waf.conf
     ln -sf ${install_path}/openstar/conf/gzip.conf ${install_path}/nginx/conf/gzip.conf
     ln -sf ${install_path}/openstar/conf/realip.conf ${install_path}/nginx/conf/realip.conf
+    ln -sf ${install_path}/openstar/conf/geoip2.conf ${install_path}/nginx/conf/geoip2.conf
     cat /etc/profile |grep 'openresty' ||(echo "PATH=${install_path}/nginx/sbin:\$PATH" >> /etc/profile && source /etc/profile)
-
 else
     #pass
     echo "./init.sh start"

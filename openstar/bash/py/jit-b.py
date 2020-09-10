@@ -10,7 +10,7 @@ path = "/opt/openresty/openstar"
 ExcludePath = []
 ExcludePath.append("/opt/openresty/openstar/lib/plugin/")
 ExcludeFile = []
-# ExcludeFile.append("/opt/openresty/openstar/lib/xx.lua")
+ExcludeFile.append("/opt/openresty/openstar/api/system/info.lua")
 
 
 scan = file.ScanFile(path, None, '.lua')

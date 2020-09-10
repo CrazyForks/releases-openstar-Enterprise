@@ -5,13 +5,13 @@ export PATH
 #=================================================
 #   System Required: CentOS 6/7,Debian 8/9,Ubuntu 16+
 #   Description: 学习 www.94ish.me 后重写的脚本
-#   Version: 0.0.2
+#   Version: 0.0.6
 #   Author: openstar
 #   项目：releases-openstar-Enterprise
 #=================================================
 
 #set -x
-sh_ver="0.0.4"
+sh_ver="0.0.6"
 github="raw.githubusercontent.com/op-sec-team/releases-openstar-Enterprise/tengine"
 
 Green_font_prefix="\033[32m" && Red_font_prefix="\033[31m" && Green_background_prefix="\033[42;37m" && Red_background_prefix="\033[41;37m" && Font_color_suffix="\033[0m"
@@ -30,7 +30,7 @@ mkdir -p ${install_path}
 jit_version=2.1.0-beta3
 luajit_uri=http://luajit.org/download/LuaJIT-${jit_version}.tar.gz
 
-or_version=1.15.8.3
+or_version=1.17.8.2
 or_uri=https://openresty.org/download/openresty-${or_version}.tar.gz
 
 luarocks_version=3.2.1
@@ -203,7 +203,7 @@ function tengine_install(){
         yum clean all
         yum makecache
         yum install -y wget make gcc readline-devel perl pcre-devel openssl-devel git unzip zip htop dos2unix bzip2
-        yum install -y goaccess libmaxminddb-devel
+        yum install -y sysstat goaccess libmaxminddb-devel
         # yum install -y wget make gcc readline-devel perl pcre-devel openssl-devel git unzip zip htop goaccess dos2unix bzip2 libmaxminddb-devel
     elif [[ "${release}" == "debian" ]]; then
         # Debian10  Debian9   Debian8  Debian7
@@ -225,7 +225,7 @@ function tengine_install(){
         echo -e "deb http://mirrors.aliyun.com/debian-security ${debapt}/updates main contrib non-free" >>/etc/apt/sources.list
         echo -e "deb-src http://mirrors.aliyun.com/debian-security ${debapt}/updates main contrib non-free" >>/etc/apt/sources.list
         apt-get install -y libpcre3-dev libssl-dev perl make build-essential curl git unzip zip htop dos2unix bzip2
-        apt-get install -y goaccess libmaxminddb-devel
+        apt-get install -y sysstat goaccess libmaxminddb-devel
     elif [[ "${release}" == "ubuntu" ]]; then
         mv /etc/apt/sources.list /etc/apt/sources.list.bak
         echo -e "deb http://mirrors.aliyun.com/ubuntu/ trusty main restricted universe multiverse" >/etc/apt/sources.list
@@ -239,15 +239,16 @@ function tengine_install(){
         echo -e "deb-src http://mirrors.aliyun.com/ubuntu/ trusty-proposed main restricted universe multiverse" >>/etc/apt/sources.list
         echo -e "deb-src http://mirrors.aliyun.com/ubuntu/ trusty-backports main restricted universe multiverse" >>/etc/apt/sources.list
         apt-get install -y libpcre3-dev libssl-dev perl make build-essential curl git unzip zip htop dos2unix bzip2
-        apt-get install -y goaccess libmaxminddb-devel
+        apt-get install -y sysstat goaccess libmaxminddb-devel
     else
         echo -e "${Error} openstar脚本不支持当前系统 ${release} ${version} ${bit} !" && exit 1
     fi
-    jemalloc_install
+    # jemalloc_install 关闭 jemalloc 内存优化
     jit_git_install
     or_down
     cd ${build_path}/openresty-${or_version}/bundle && rm -rf tengine*
     git clone --depth=1 https://github.com/leev/ngx_http_geoip2_module.git || (echo "git clone ngx_http_geoip2_module Error" && exit 1)
+    git clone --depth=1 https://github.com/api7/lua-var-nginx-module.git || (echo "git clone lua-var-nginx-module Error" && exit 1)
     rm -rf ngx_cache_purge-${purge_version}.tar.gz
     wget ${purge_uri} || (echo "wget purge Error" && exit 1)
     tar zxvf ngx_cache_purge-${purge_version}.tar.gz
@@ -256,10 +257,11 @@ function tengine_install(){
     cd tengine-${tengine_version}
     ./configure --prefix=${install_path}/nginx \
         --with-cc-opt=-O2 \
-        --add-module=../ngx_devel_kit-0.3.1rc1 \
+        --add-module=../ngx_devel_kit-0.3.1 \
         --add-module=../headers-more-nginx-module-0.33 \
         --add-module=../ngx_cache_purge-${purge_version} \
         --add-module=../ngx_http_geoip2_module \
+        --add-module=../lua-var-nginx-module \
         --with-http_lua_module \
         --with-http_realip_module \
         --with-http_v2_module \
@@ -269,8 +271,8 @@ function tengine_install(){
         --with-http_ssl_module \
         --with-luajit-lib=/usr/local/lib/ \
         --with-luajit-inc=/usr/local/include/luajit-2.1/ \
-        --with-ld-opt=-Wl,-rpath,/usr/local/lib \
-        --with-ld-opt='-ljemalloc' ||(echo "configure tengine error" && exit 1)
+        --with-ld-opt=-Wl,-rpath,/usr/local/lib ||(echo "configure tengine error" && exit 1)
+    ## --with-ld-opt='-ljemalloc'
     make && make install
     chown nobody:nobody -R ${install_path}
     cd ${install_path}
@@ -286,6 +288,7 @@ function waf_ngx_conf(){
     ln -sf ${install_path}/openstar/conf/waf.conf ${install_path}/nginx/conf/waf.conf
     ln -sf ${install_path}/openstar/conf/gzip.conf ${install_path}/nginx/conf/gzip.conf
     ln -sf ${install_path}/openstar/conf/realip.conf ${install_path}/nginx/conf/realip.conf
+    ln -sf ${install_path}/openstar/conf/geoip2.conf ${install_path}/nginx/conf/geoip2.conf
 }
 
 #openstar安装
@@ -407,6 +410,7 @@ function check(){
     ln -sf ${install_path}/openstar/conf/waf.conf ${install_path}/nginx/conf/waf.conf
     ln -sf ${install_path}/openstar/conf/gzip.conf ${install_path}/nginx/conf/gzip.conf
     ln -sf ${install_path}/openstar/conf/realip.conf ${install_path}/nginx/conf/realip.conf
+    ln -sf ${install_path}/openstar/conf/geoip2.conf ${install_path}/nginx/conf/geoip2.conf
     # ln -sf ${install_path}/luarocks/lib/lua/5.1/cjson.so ${install_path}/openstar/lib/cjson.so
     cd ${install_path}/nginx/html && (ls |grep "favicon.ico" || wget https://www.nginx.org/favicon.ico)
     cp -rf ${install_path}/nginx/html/favicon.ico ${install_path}/nginx/html/view-private/
