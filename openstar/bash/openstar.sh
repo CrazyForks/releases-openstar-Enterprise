@@ -5,13 +5,13 @@ export PATH
 #=================================================
 #   System Required: CentOS 6/7,Debian 8/9,Ubuntu 16+
 #   Description: 学习 www.94ish.me 后重写的脚本
-#   Version: 2.0.7
+#   Version: 2.0.8
 #   Author: openstar
 #   项目：releases-openstar-Enterprise
 #=================================================
 
 #set -x
-sh_ver="2.0.7"
+sh_ver="2.0.8"
 github="raw.githubusercontent.com/op-sec-team/releases-openstar-Enterprise/master"
 
 Green_font_prefix="\033[32m" && Red_font_prefix="\033[31m" && Green_background_prefix="\033[42;37m" && Red_background_prefix="\033[41;37m" && Font_color_suffix="\033[0m"
@@ -27,19 +27,106 @@ mkdir -p ${build_path}
 install_path=/opt/openresty
 mkdir -p ${install_path}
 
-# openresty 安装的版本
-install_or_version=1.17.8.2
+# openresty 安装的版本 1.17.8.2 不要用，目前还有 bug ！！！
+install_or_version=1.15.8.3
 # openresty 对应 nginx 版本说明
-# 1.11.2.2 nginx 1.11.2 , 1.11.2.1 nginx 1.11.2 , 1.9.15.1 nginx 1.9.15
+# 1.15.8.3 nginx 1.15.8
 # 1.17.8.2 nginx 1.17.8
 # openresty 下载路径
 openresty_uri=https://openresty.org/download/openresty-${install_or_version}.tar.gz
+openresty_md5=819a31fa6e9cc8c5aa4838384a9717a7
+# 1.15.8.3 版本的 md5
+down_openresty(){
+    cd ${build_path}
+    if [ ! -f "openresty-${install_or_version}.tar.gz" ]; then
+        echo "openresty-${install_or_version}.tar.gz 文件不存在  需要下载！"
+        wget ${openresty_uri} || (echo "${Error}wget openresty Error!!" && exit 1)
+    else
+        # 文件存在检查 md5
+        or_now=`md5sum openresty-${install_or_version}.tar.gz|awk '{print $1}'`
+        if [ "${or_now}" = "${openresty_md5}" ]; then
+            echo "openresty-${install_or_version}.tar.gz md5 ok!"
+        else
+            echo "openresty-${install_or_version}.tar.gz 文件 md5 不正确"
+            rm -rf openresty-${install_or_version}.tar.gz
+            wget ${openresty_uri} || (echo "${Error}wget openresty Error!!" && exit 1)
+        fi
+    fi
+}
 
 luarocks_version=3.2.1
 luarocks_uri=http://luarocks.org/releases/luarocks-${luarocks_version}.tar.gz
+luarocks_md5=236ea48b78ddb96ecbd33654a573bdb2
+# 3.2.1 版本的 md5
+down_luarocks(){
+    cd ${build_path}
+    if [ ! -f "luarocks-${luarocks_version}.tar.gz" ]; then
+        echo "luarocks-${luarocks_version}.tar.gz 文件不存在  需要下载！"
+        wget ${luarocks_uri} || (echo "wget luarocks Error" && exit 1)
+    else
+        # 文件存在检查 md5
+        luarocks_now=`md5sum luarocks-${luarocks_version}.tar.gz|awk '{print $1}'`
+        if [ "${luarocks_now}" = "${luarocks_md5}" ]; then
+            echo "luarocks-${luarocks_version}.tar.gz md5 ok!"
+        else
+            echo "luarocks-${luarocks_version}.tar.gz 文件 md5 不正确"
+            rm -rf luarocks-${luarocks_version}.tar.gz && wget ${luarocks_uri} || (echo "wget luarocks Error" && exit 1)
+        fi
+    fi
+}
 
 purge_version=2.3
 purge_uri=http://labs.frickle.com/files/ngx_cache_purge-${purge_version}.tar.gz
+purge_md5=3d4ec04bbc16c3b555fa20392c1119d1
+# 2.3 版本的 md5
+down_purge(){
+    cd ${build_path}
+    if [ ! -f "ngx_cache_purge-${purge_version}.tar.gz" ]; then
+        echo "ngx_cache_purge-${purge_version}.tar.gz 文件不存在  需要下载！"
+        wget ${purge_uri} || (echo "wget purge Error" && exit 1)
+    else
+        # 文件存在检查 md5
+        purge_now=`md5sum ngx_cache_purge-${purge_version}.tar.gz|awk '{print $1}'`
+        if [ "${purge_now}" = "${purge_md5}" ]; then
+            echo "ngx_cache_purge-${purge_version}.tar.gz md5 ok!"
+        else
+            echo "ngx_cache_purge-${purge_version}.tar.gz 文件 md5 不正确"
+            rm -rf ngx_cache_purge-${purge_version}.tar.gz && wget ${purge_uri} || (echo "wget purge Error" && exit 1)
+        fi
+    fi
+}
+
+#安装jemalloc最新版本
+jemalloc_md5=3d41fbf006e6ebffd489bdb304d009ae
+jemalloc_url=https://github.com/jemalloc/jemalloc/releases/download/5.2.1/jemalloc-5.2.1.tar.bz2
+jemalloc_install(){
+    if [[ -f /usr/local/lib/libjemalloc.so ]]; then
+        echo "jemalloc install" && return
+    fi
+    cd ${build_path}
+    if [ ! -f "jemalloc-5.2.1.tar.bz2" ]; then
+        echo "jemalloc-5.2.1.tar.bz2 文件不存在 需要下载！"
+        wget ${jemalloc_url} || (echo "${Error}wget jemalloc Error" && exit 1)
+    else
+        # 文件存在检查 md5
+        jemalloc_now=`md5sum jemalloc-5.2.1.tar.bz2|awk '{print $1}'`
+        if [ "${jemalloc_now}" = "${jemalloc_md5}" ]; then
+            echo "jemalloc-5.2.1.tar.bz2 md5 ok!"
+        else
+            echo "jemalloc-5.2.1.tar.bz2 文件 md5 不正确"
+            rm -rf jemalloc-5.2.1.tar.bz2
+            wget ${jemalloc_url} || (echo "${Error}wget jemalloc Error" && exit 1)
+        fi
+    fi
+    rm -rf jemalloc-5.2.1
+    tar -xvf jemalloc-5.2.1.tar.bz2 || (echo "${Error}tar -xvf jemalloc-xxx.tar.bz2 Error" && exit 1)
+    cd jemalloc-5.2.1
+    ./configure || (echo "${Error}configure jemalloc Error" && exit 1)
+    make && make install
+    echo '/usr/local/lib' > /etc/ld.so.conf.d/local.conf
+    ldconfig
+}
+
 
 # centos 6 = remi-release-6.rpm ; centos 7 = remi-release-7.rpm
 # rpm_uri=http://rpms.famillecollet.com/enterprise/remi-release-7.rpm
@@ -142,35 +229,21 @@ Update_Shell(){
     fi
 }
 
-#安装jemalloc最新版本
-jemalloc_install(){
-    if [[ -f /usr/local/lib/libjemalloc.so ]]; then
-        echo "jemalloc install" && return
-    fi
-    cd ${build_path} && rm -rf jemalloc*
-    wget https://github.com/jemalloc/jemalloc/releases/download/5.2.1/jemalloc-5.2.1.tar.bz2 || (echo "${Error}wget jemalloc Error" && exit 1)
-    tar -xvf jemalloc-5.2.1.tar.bz2 || (echo "${Error}tar -xvf jemalloc-xxx.tar.bz2 Error" && exit 1)
-    cd jemalloc-5.2.1
-    ./configure || (echo "${Error}configure jemalloc Error" && exit 1)
-    make && make install
-    echo '/usr/local/lib' > /etc/ld.so.conf.d/local.conf
-    ldconfig
-}
 
+#安装 luarocks
 luarocks_install(){
     if [[ -f ${install_path}/luarocks/bin/luarocks ]]; then
         echo "luarocks install" && return
     fi
-    cd ${build_path} && rm -rf luarocks*
-    wget ${luarocks_uri} || (echo "wget luarocks Error" && exit 1)
-    rm -rf luarocks-${luarocks_version} && tar xvzf luarocks-${luarocks_version}.tar.gz
+    down_luarocks
+    cd ${build_path} && rm -rf luarocks-${luarocks_version}
+    tar xvzf luarocks-${luarocks_version}.tar.gz || (echo "${Error}tar -xvf luarocks-${luarocks_version}.tar.gz Error" && exit 1)
     cd luarocks-${luarocks_version}
     ./configure --prefix=${install_path}/luarocks \
                 --with-lua=${install_path}/luajit/ \
                 --with-lua-include=${install_path}/luajit/include/luajit-2.1 \
                 --lua-suffix='jit' || (echo "configure luarocks Error" && exit 1)
-    make
-    make install
+    make && make install
     # ln -sf ${install_path}/luarocks/bin/luarocks /usr/bin/luarocks
 }
 
@@ -228,18 +301,20 @@ function openresty_install(){
     cd ${build_path}
     git clone --depth=1 https://github.com/leev/ngx_http_geoip2_module.git || (echo "git clone ngx_http_geoip2_module Error" && exit 1)
     git clone --depth=1 https://github.com/api7/lua-var-nginx-module.git || (echo "git clone lua-var-nginx-module Error" && exit 1)
-    rm -rf ngx_cache_purge-${purge_version}.tar.gz
-    wget ${purge_uri} || (echo "wget purge Error" && exit 1)
-    tar zxvf ngx_cache_purge-${purge_version}.tar.gz
-    rm -rf openresty-${install_or_version}.tar.gz
-    wget ${openresty_uri} || (echo "${Error}wget openresty Error!!" && exit 1)
-    rm -rf openresty-${install_or_version} && tar zxvf openresty-${install_or_version}.tar.gz
+    # ngx_cache_purge 检查下载
+    down_purge
+    rm -rf ngx_cache_purge-${purge_version}
+    tar zxf ngx_cache_purge-${purge_version}.tar.gz || (echo "${Error}tar -xvf ngx_cache_purge-${purge_version}.tar.gz Error" && exit 1)
+
+    # openresty 检查下载
+    down_openresty
+    rm -rf openresty-${install_or_version}
+    tar zxf openresty-${install_or_version}.tar.gz || (echo "${Error}tar -xvf openresty-${install_or_version}.tar.gz Error" && exit 1)
     cd openresty-${install_or_version}
-    ############################### --with-ld-opt='-ljemalloc' \
+    ############################### --with-ld-opt='-ljemalloc' --add-module=${build_path}/lua-var-nginx-module \
     ./configure --prefix=${install_path} \
                 --add-module=${build_path}/ngx_http_geoip2_module \
                 --add-module=${build_path}/ngx_cache_purge-${purge_version} \
-                --add-module=${build_path}/lua-var-nginx-module \
                 --without-luajit-gc64 \
                 --with-http_realip_module \
                 --with-http_stub_status_module \
@@ -385,7 +460,7 @@ function check(){
     ln -sf ${install_path}/openstar/conf/gzip.conf ${install_path}/nginx/conf/gzip.conf
     ln -sf ${install_path}/openstar/conf/realip.conf ${install_path}/nginx/conf/realip.conf
     ln -sf ${install_path}/openstar/conf/geoip2.conf ${install_path}/nginx/conf/geoip2.conf
-    cd ${install_path}/nginx/html && (ls |grep "favicon.ico" || wget https://www.nginx.org/favicon.ico)
+    cd ${install_path}/nginx/html && (ls |grep "favicon.ico" || mv -f ${install_path}/openstar/favicon.ico ./)
     cp -rf ${install_path}/nginx/html/favicon.ico ${install_path}/nginx/html/view-private/
     cp -rf ${install_path}/nginx/html/favicon.ico ${install_path}/nginx/html/view-master/
     dos2unix ${install_path}/openstar/conf/*.conf
