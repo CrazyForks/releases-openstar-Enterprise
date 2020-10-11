@@ -19,7 +19,7 @@
     "network_Mod":[
         {
             "state": "on",
-            "des":"[host_Mod] 1-test_cc",
+            "dec":"[host_Mod] 1-test_cc",
             "waf":"cc",
             "action":"deny",
             "network":{"maxReqs":30,"pTime":10,"blackTime":600,"guid":"cookie_userguid"},
