@@ -1,7 +1,7 @@
 var URL = '';
 var IP_URL =  "http://ip-api.com/json/"; // CC攻击防护api
 var branch  = "private"
-var version = "2.1.1"
+var version = "2.1.2"
 
 
 var navleft = `<nav class="navbar-default navbar-static-side" role="navigation">

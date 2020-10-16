@@ -494,10 +494,18 @@
                 },
                 changeSwitch() {
                     const that = this;
-                    value = {
-                        state: that.state,
-                        G_version: that.G_version,
-                    }
+					if(that.activeName === "args_Mod" || that.activeName === "post_Mod" ){
+						value = {
+						    state: that.state,
+						    G_version: that.G_version,
+							HPP_state: that.intercept,
+						}
+					}else{
+						value = {
+						    state: that.state,
+						    G_version: that.G_version
+						}
+					}
                     $.post(URL + '/api/v2/config_dict', {
                         mod: 'base',
                         action: 'set',
