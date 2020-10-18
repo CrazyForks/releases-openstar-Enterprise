@@ -122,7 +122,7 @@
         "state":"on",
         "ip":"36.110.148.175",
         "Port":6379,
-        "Password":"9f75aooooooooxxxxxxxxc074c7a"
+        "Password":"9f75a7509e707842a02aaa058c074c7a"
     },
     "autoSync":{
         "state":"Master",
@@ -142,7 +142,7 @@
         "authority":{
             "header_name":"sign",
             "alg":"MD5",
-            "key":"isoda9823jdsuida8asdjfiaisodfjuds",
+            "key":"isoda98xxxxxxxxxxxxxodfjuds",
             "format_tb":[
                     "$uri",
                     "$http_time",

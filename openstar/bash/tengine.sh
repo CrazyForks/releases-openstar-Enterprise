@@ -390,6 +390,7 @@ function openstar_install(){
     cp -Rf ./releases-openstar-Enterprise/view-private ${install_path}/nginx/html/
     mkdir -p ${install_path}/nginx/conf/conf.d
     mkdir -p ${install_path}/nginx/conf/stream
+    mkdir -p ${install_path}/nginx/certs
     chown nobody:nobody -R ${install_path}/openstar
     chown nobody:nobody -R ${install_path}/nginx/html/view-private
 }
@@ -428,6 +429,7 @@ openstar_menu(){
             cp -Rf ${install_path}/openstar.bak/conf_json/base.json ${install_path}/openstar/conf_json/
             cp -Rf ${install_path}/openstar.bak/conf_json/nginx_Mod.json ${install_path}/openstar/conf_json/
             cp -Rf ${install_path}/openstar.bak/conf_json/certs_Mod.json ${install_path}/openstar/conf_json/
+            cp -Rf ${install_path}/openstar.bak/conf_json/root_certs_Mod.json ${install_path}/openstar/conf_json/
             cp -Rf ${install_path}/openstar.bak/conf_json/plugin_Mod.json ${install_path}/openstar/conf_json/
             cp -Rf ${install_path}/openstar.bak/lib/plugin/* ${install_path}/openstar/lib/plugin/
             return
