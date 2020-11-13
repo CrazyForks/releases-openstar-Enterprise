@@ -163,8 +163,11 @@
             "$useragent",
             "$referer",
             "$request_uri",
+            "$posts_all",
+            "$rep_body",
             "waf_log:",
             "$waf_log",
+            "$waf",
             "\n"
         ],
         "tb_concat":"\t"
