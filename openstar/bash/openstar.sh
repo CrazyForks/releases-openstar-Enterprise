@@ -30,7 +30,7 @@ old_path="${install_path}/openstar.bak/"
 resty="${install_path}/bin/resty -I ${install_path}/openstar/lib/ ${install_path}/openstar/bash/openstar.lua ${old_path}"
 
 resty_lua_uri=http://${github}/openstar/bash/openstar.lua
-resty_lua_md5=b5c4f5c99b8f8c75f5d6f058b939392e
+resty_lua_md5=d7e9f3b94516f2eed4933481d025e0b5
 resty_luadown(){
     if [ ! -f "${install_path}/openstar/bash/openstar.lua" ]; then
         echo "resty_lua [openstar.lua] 文件不存在  需要下载！"

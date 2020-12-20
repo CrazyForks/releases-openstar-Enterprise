@@ -28,7 +28,7 @@ local function base_json_New()
     -- 将老的 base.json 中的配置 赋值到 新的 base.json 中
     -- 为什么不直接覆盖？ 可能新的 base.json 中，一些 key 变动了
     -- 修改 redis_Mod ip port psd
-    local o_redis_Mod = o_json["redis_Mod "] or {}
+    local o_redis_Mod = o_json["redis_Mod"] or {}
     n_json["redis_Mod"]["state"] = o_redis_Mod["state"] or "on"
     n_json["redis_Mod"]["ip"] = o_redis_Mod["ip"]
     n_json["redis_Mod"]["Port"] = o_redis_Mod["Port"] or 6379
