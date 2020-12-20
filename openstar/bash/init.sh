@@ -10,6 +10,7 @@ if [ "$1" = "start" ];then
     mkdir -p ${install_path}/nginx/conf/conf.d
     mkdir -p ${install_path}/nginx/conf/stream
     mkdir -p ${install_path}/nginx/certs
+    mkdir -p ${install_path}/nginx/root_certs
     mkdir -p /tmp/ngx_cache
     chown nobody:nobody -R ${install_path}
     chown root:nobody ${install_path}/nginx/sbin/nginx

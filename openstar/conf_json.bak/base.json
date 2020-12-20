@@ -92,7 +92,16 @@
         "G_version":20200201
     },
 
+    "log_Mod":{
+        "state":"off",
+        "G_version":20200201
+    },
+
     "certs_Mod":{
+        "G_version":20200201
+    },
+
+    "root_certs_Mod":{
         "G_version":20200201
     },
 

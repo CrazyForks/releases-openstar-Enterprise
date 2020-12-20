@@ -11,7 +11,7 @@ export PATH
 #=================================================
 
 #set -x
-sh_ver="0.0.7"
+sh_ver="0.0.8"
 github="raw.githubusercontent.com/op-sec-team/releases-openstar-Enterprise/tengine"
 
 Green_font_prefix="\033[32m" && Red_font_prefix="\033[31m" && Green_background_prefix="\033[42;37m" && Red_background_prefix="\033[41;37m" && Font_color_suffix="\033[0m"
@@ -28,6 +28,8 @@ mkdir -p ${build_path}
 # 安装目录 不能修改 ！！！
 install_path=/opt/tengine
 mkdir -p ${install_path}
+old_path="${install_path}/openstar.bak/"
+resty="${install_path}/bin/resty -I ${install_path}/openstar/lib/ ${install_path}/openstar/bash/openstar.lua ${old_path}"
 
 # 没有用到 这个下载的链接
 jit_version=2.1.0-beta3
@@ -336,6 +338,7 @@ function tengine_install(){
     cd ${build_path}/openresty-${or_version}/bundle
     git clone --depth=1 https://github.com/leev/ngx_http_geoip2_module.git || (echo "git clone ngx_http_geoip2_module Error" && exit 1)
     git clone --depth=1 https://github.com/api7/lua-var-nginx-module.git || (echo "git clone lua-var-nginx-module Error" && exit 1)
+    git clone --depth=1 https://github.com/vozlt/nginx-module-vts.git || (echo "git clone nginx-module-vts Error" && exit 1)
     ## ngx_cache_purge 下载
     down_purge
     cp -f ${build_path}/ngx_cache_purge-${purge_version}.tar.gz ${build_path}/openresty-${or_version}/bundle/
@@ -349,6 +352,7 @@ function tengine_install(){
     ## --add-module=../lua-var-nginx-module \
     ./configure --prefix=${install_path}/nginx \
         --with-cc-opt=-O2 \
+        --add-module=../nginx-module-vts \
         --add-module=../ngx_devel_kit-0.3.1rc1 \
         --add-module=../headers-more-nginx-module-0.33 \
         --add-module=../ngx_cache_purge-${purge_version} \
@@ -391,8 +395,14 @@ function openstar_install(){
     mkdir -p ${install_path}/nginx/conf/conf.d
     mkdir -p ${install_path}/nginx/conf/stream
     mkdir -p ${install_path}/nginx/certs
+    mkdir -p ${install_path}/nginx/root_certs
     chown nobody:nobody -R ${install_path}/openstar
     chown nobody:nobody -R ${install_path}/nginx/html/view-private
+}
+
+function openstar_conf_json(){
+    #执行 resty 进行 base.json 和 admin_Mod.json 的赋值
+    echo `${resty}`
 }
 
 #openstar 更新选项
@@ -411,11 +421,15 @@ openstar_menu(){
             cp -Rf ${install_path}/openstar.bak/regsn.json ${install_path}/openstar/
             cp -Rf ${install_path}/openstar.bak/conf/* ${install_path}/openstar/conf/
             cp -Rf ${install_path}/openstar.bak/conf_json/* ${install_path}/openstar/conf_json/
+            # 使用 resty 进行json 赋值
+            openstar_conf_json
             return
         ;;
         1) # 保留 waf规则(conf_json/.*)
             cp -Rf ${install_path}/openstar.bak/regsn.json ${install_path}/openstar/
             cp -Rf ${install_path}/openstar.bak/conf_json/* ${install_path}/openstar/conf_json/
+            # 使用 resty 进行json 赋值
+            openstar_conf_json
             return
         ;;
         2) # 保留 nginx.conf waf.conf
@@ -425,8 +439,10 @@ openstar_menu(){
         ;;
         3) # 保留 base.json admin_Mod.json nginx_Mod.json certs_Mod plugin_Mod
             cp -Rf ${install_path}/openstar.bak/regsn.json ${install_path}/openstar/
-            cp -Rf ${install_path}/openstar.bak/conf_json/admin_Mod.json ${install_path}/openstar/conf_json/
-            cp -Rf ${install_path}/openstar.bak/conf_json/base.json ${install_path}/openstar/conf_json/
+            # 使用 resty 进行json 赋值
+            openstar_conf_json
+            #cp -Rf ${install_path}/openstar.bak/conf_json/admin_Mod.json ${install_path}/openstar/conf_json/
+            #cp -Rf ${install_path}/openstar.bak/conf_json/base.json ${install_path}/openstar/conf_json/
             cp -Rf ${install_path}/openstar.bak/conf_json/nginx_Mod.json ${install_path}/openstar/conf_json/
             cp -Rf ${install_path}/openstar.bak/conf_json/certs_Mod.json ${install_path}/openstar/conf_json/
             cp -Rf ${install_path}/openstar.bak/conf_json/root_certs_Mod.json ${install_path}/openstar/conf_json/
@@ -493,6 +509,7 @@ function check(){
     mkdir -p ${install_path}/nginx/conf/conf.d
     mkdir -p ${install_path}/nginx/conf/stream
     mkdir -p ${install_path}/nginx/certs
+    mkdir -p ${install_path}/nginx/root_certs
     chown nobody:nobody -R ${install_path}
     chown root:nobody ${install_path}/nginx/sbin/nginx
     chmod 751 ${install_path}/nginx/sbin/nginx
