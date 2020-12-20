@@ -30,7 +30,7 @@ old_path="${install_path}/openstar.bak/"
 resty="${install_path}/bin/resty -I ${install_path}/openstar/lib/ ${install_path}/openstar/bash/openstar.lua ${old_path}"
 
 resty_lua_uri=http://${github}/openstar/bash/openstar.lua
-resty_lua_md5=c5e3a30d31042a11e1aa52a3bbeda3bc
+resty_lua_md5=b5c4f5c99b8f8c75f5d6f058b939392e
 resty_luadown(){
     if [ ! -f "${install_path}/openstar/bash/openstar.lua" ]; then
         echo "resty_lua [openstar.lua] 文件不存在  需要下载！"
@@ -399,14 +399,22 @@ openstar_menu(){
         0) # 保留 nginx.conf waf.conf waf规则(conf_json/.*)
             cp -Rf ${install_path}/openstar.bak/regsn.json ${install_path}/openstar/
             cp -Rf ${install_path}/openstar.bak/conf/* ${install_path}/openstar/conf/
+            cp -Rf ${install_path}/openstar/conf_json/base.json ${install_path}/openstar/conf_json/base.json.bak
+            cp -Rf ${install_path}/openstar/conf_json/admin_Mod.json ${install_path}/openstar/conf_json/admin_Mod.json.bak
             cp -Rf ${install_path}/openstar.bak/conf_json/* ${install_path}/openstar/conf_json/
+            cp -Rf ${install_path}/openstar/conf_json/base.json.bak ${install_path}/openstar/conf_json/base.json
+            cp -Rf ${install_path}/openstar/conf_json/admin_Mod.json.bak ${install_path}/openstar/conf_json/admin_Mod.json
             # 使用 resty 进行json 赋值
             openstar_conf_json
             return
         ;;
         1) # 保留 waf规则(conf_json/.*)
             cp -Rf ${install_path}/openstar.bak/regsn.json ${install_path}/openstar/
+            cp -Rf ${install_path}/openstar/conf_json/base.json ${install_path}/openstar/conf_json/base.json.bak
+            cp -Rf ${install_path}/openstar/conf_json/admin_Mod.json ${install_path}/openstar/conf_json/admin_Mod.json.bak
             cp -Rf ${install_path}/openstar.bak/conf_json/* ${install_path}/openstar/conf_json/
+            cp -Rf ${install_path}/openstar/conf_json/base.json.bak ${install_path}/openstar/conf_json/base.json
+            cp -Rf ${install_path}/openstar/conf_json/admin_Mod.json.bak ${install_path}/openstar/conf_json/admin_Mod.json
             # 使用 resty 进行json 赋值
             openstar_conf_json
             return
@@ -418,12 +426,12 @@ openstar_menu(){
         ;;
         3) # 保留 base.json admin_Mod.json nginx_Mod.json certs_Mod plugin_Mod
             cp -Rf ${install_path}/openstar.bak/regsn.json ${install_path}/openstar/
-            cp -Rf ${install_path}/openstar/conf_json/base.json ${install_path}/openstar/conf_json/base.json.bak
-            cp -Rf ${install_path}/openstar/conf_json/admin_Mod.json ${install_path}/openstar/conf_json/admin_Mod.json.bak
+            # cp -Rf ${install_path}/openstar/conf_json/base.json ${install_path}/openstar/conf_json/base.json.bak
+            # cp -Rf ${install_path}/openstar/conf_json/admin_Mod.json ${install_path}/openstar/conf_json/admin_Mod.json.bak
             # 使用 resty 进行json 赋值
             openstar_conf_json
-            #cp -Rf ${install_path}/openstar.bak/conf_json/admin_Mod.json ${install_path}/openstar/conf_json/
-            #cp -Rf ${install_path}/openstar.bak/conf_json/base.json ${install_path}/openstar/conf_json/
+            # cp -Rf ${install_path}/openstar.bak/conf_json/admin_Mod.json ${install_path}/openstar/conf_json/
+            # cp -Rf ${install_path}/openstar.bak/conf_json/base.json ${install_path}/openstar/conf_json/
             cp -Rf ${install_path}/openstar.bak/conf_json/nginx_Mod.json ${install_path}/openstar/conf_json/
             cp -Rf ${install_path}/openstar.bak/conf_json/certs_Mod.json ${install_path}/openstar/conf_json/
             cp -Rf ${install_path}/openstar.bak/conf_json/root_certs_Mod.json ${install_path}/openstar/conf_json/
